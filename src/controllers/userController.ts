@@ -19,9 +19,17 @@ export const getUsers = async (_req: Request, res: Response) => {
     res.status(500).json({ error: err });
   }
 };
-export const getUserById = async (req: Request, res: Response) => {
+
+export const updateFcmToken = async (req: Request, res: Response) => {
   try {
-    const users = await User.findById(req.params.id);
+    const { fcmToken, role } = req.body;
+    const users = await User.findOneAndUpdate(
+      { role: role },
+      { fcmToken },
+      {
+        new: true,
+      }
+    );
     res.json(users);
     if (!users) {
       res.status(404).json({ message: "User not found" });
