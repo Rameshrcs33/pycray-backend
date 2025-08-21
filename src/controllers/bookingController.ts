@@ -1,10 +1,27 @@
 import { Request, Response } from "express";
 import { Booking } from "../models/Booking";
+import { User } from "../models/User";
+import { sendPushNotification } from "../utils/fcm";
 
 export const requestRide = async (req: Request, res: Response) => {
   try {
     const { customerId, pickup, destination } = req.body;
-    const booking = await Booking.create({ customerId, pickup, destination });
+    const booking: any = await Booking.create({
+      customerId,
+      pickup,
+      destination,
+    });
+
+    if (!booking) return res.status(404).send("Booking creation failed");
+
+    const customer: any = await User.find({ role: "driver" });
+    if (customer?.fcmToken) {
+      await sendPushNotification(customer?.fcmToken, {
+        title: "Booking created",
+        body: `Your ride was ${booking?.status}`,
+        data: { bookingId: booking._id.toString(), status: booking?.status },
+      });
+    }
 
     res.json(booking);
   } catch (err) {
@@ -33,7 +50,7 @@ export const getAllBooking = async (_req: Request, res: Response) => {
 export const acceptRequest = async (req: Request, res: Response) => {
   try {
     const { status, driverId } = req.body;
-    const booking = await Booking.findByIdAndUpdate(
+    const booking: any = await Booking.findByIdAndUpdate(
       req.params.id,
       { status, driverId },
       { new: true }
@@ -41,12 +58,14 @@ export const acceptRequest = async (req: Request, res: Response) => {
 
     if (!booking) return res.status(404).send("Not found");
 
-    // 🔔 Notify Customer via FCM
-    // await sendPushNotification(booking.customerId, {
-    //   title: "Ride Update",
-    //   body: `Your ride was ${status}`,
-    //   data: { bookingId: booking._id.toString(), status },
-    // });
+    const customer: any = await User.findById(booking.customerId);
+    if (customer?.fcmToken) {
+      await sendPushNotification(customer?.fcmToken, {
+        title: "Booking Update",
+        body: `Your ride was ${status}`,
+        data: { bookingId: booking._id.toString(), status },
+      });
+    }
 
     res.json(booking);
   } catch (error: any) {
