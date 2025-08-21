@@ -11,9 +11,10 @@ export const createUser = async (req: Request, res: Response) => {
   }
 };
 
-export const getUsers = async (_req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response) => {
   try {
-    const users = await User.find();
+    const { role } = req.query;
+    const users = await User.find({ role: role });
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: err });
