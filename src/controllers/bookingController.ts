@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { Booking } from "../models/Booking";
-import { User } from "../models/User";
 
 export const requestRide = async (req: Request, res: Response) => {
   try {
@@ -15,11 +14,8 @@ export const requestRide = async (req: Request, res: Response) => {
 
 export const getRequest = async (req: Request, res: Response) => {
   try {
-    const requests = await Booking.find({ status: "requested" }).populate(
-      "customerId"
-    );
-
-    res.json(requests);
+    const requested = await Booking.find({ status: "requested" });
+    res.json(requested);
   } catch (err) {
     res.status(400).json({ error: err });
   }
@@ -27,24 +23,21 @@ export const getRequest = async (req: Request, res: Response) => {
 
 export const acceptRequest = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const { driverId, action } = req.body;
+    const { status, driverId } = req.body;
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      { status, driverId },
+      { new: true }
+    );
 
-    const booking = await Booking.findById(id);
-    if (!booking) return res.status(404).json({ error: "Booking not found" });
+    if (!booking) return res.status(404).send("Not found");
 
-    booking.status = action === "accept" ? "accepted" : "rejected";
-    booking.driverId = driverId;
-    await booking.save();
-
-    const customer = await User.findById(booking.customerId);
-    // if (customer?.fcmToken) {
-    //   await sendNotification(customer.fcmToken, {
-    //     title: "Ride Update",
-    //     body: `Your ride was ${booking.status} by driver`,
-    //     data: { bookingId: booking._id.toString(), status: booking.status },
-    //   });
-    // }
+    // 🔔 Notify Customer via FCM
+    // await sendPushNotification(booking.customerId, {
+    //   title: "Ride Update",
+    //   body: `Your ride was ${status}`,
+    //   data: { bookingId: booking._id.toString(), status },
+    // });
 
     res.json(booking);
   } catch (error: any) {
