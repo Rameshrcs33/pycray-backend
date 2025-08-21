@@ -21,6 +21,15 @@ export const getRequest = async (req: Request, res: Response) => {
   }
 };
 
+export const getAllBooking = async (_req: Request, res: Response) => {
+  try {
+    const booking = await Booking.find();
+    res.json(booking);
+  } catch (err) {
+    res.status(500).json({ error: err });
+  }
+};
+
 export const acceptRequest = async (req: Request, res: Response) => {
   try {
     const { status, driverId } = req.body;
