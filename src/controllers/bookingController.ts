@@ -15,11 +15,16 @@ export const requestRide = async (req: Request, res: Response) => {
     if (!booking) return res.status(404).send("Booking creation failed");
 
     const customer: any = await User.find({ role: "driver" });
-    if (customer?.fcmToken) {
-      await sendPushNotification(customer?.fcmToken, {
-        title: "Booking created",
-        body: `Your ride was ${booking?.status}`,
-        data: { bookingId: booking._id.toString(), status: booking?.status },
+    const fcmToken = customer[0]?.fcmToken;
+
+    const id = booking?._id?.toString();
+    const status = booking?.status;
+
+    if (fcmToken) {
+      await sendPushNotification(fcmToken, {
+        title: "New Booking placed",
+        body: `Your ride was ${status}`,
+        data: { bookingId: id, status },
       });
     }
 
