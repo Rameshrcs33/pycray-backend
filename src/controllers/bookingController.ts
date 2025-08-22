@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import { Booking } from "../models/Booking";
 import { User } from "../models/User";
-import { sendPushNotification } from "../utils/fcm";
-
+import { sendPushNotification } from "../utils/fcm"
 export const requestRide = async (req: Request, res: Response) => {
   try {
     const { customerId, pickup, destination } = req.body;
