@@ -7,7 +7,7 @@ Driver will receive fcm push notification when new ride book.
 Customer will receive fcm notification when driver approve / reject
 ## Server integration
 nodejs
-mongodb
+mongodb atlas
 typescript
 expressjs
 ## Backend deployemnt server
